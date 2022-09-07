@@ -13,15 +13,15 @@ mod args;
 mod config;
 
 use api::hello::{exit, greet};
-use api::jobs::{post_jobs, JobCounter};
+use api::jobs::{get_jobs, get_jobs_by_id, post_jobs, put_jobs_by_id, JobCounter, JobResponse};
 use args::Args;
 use args::Parser;
 use config::Config;
 
 // 全局变量
-struct Job {}
+
 lazy_static! {
-    static ref JOB_LIST: Arc<Mutex<Vec<Job>>> = Arc::new(Mutex::new(Vec::new()));
+    static ref JOB_LIST: Arc<Mutex<Vec<JobResponse>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
 #[actix_web::main]
@@ -51,6 +51,9 @@ async fn main() -> std::io::Result<()> {
             // DO NOT REMOVE: used in automatic testing
             .service(exit)
             .service(post_jobs)
+            .service(get_jobs)
+            .service(get_jobs_by_id)
+            .service(put_jobs_by_id)
     })
     .bind(("127.0.0.1", 12345))?
     .run()
