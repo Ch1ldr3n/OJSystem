@@ -8,7 +8,7 @@ use actix_web::{get, post, put, web, HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
-use crate::JOB_LIST;
+use crate::{JOB_LIST, USER_LIST};
 use chrono::Utc;
 use wait_timeout::ChildExt;
 
@@ -64,6 +64,16 @@ async fn post_jobs(
     if !config_languages.iter().any(|x| &x.name == current_language)
         || !config_problems.iter().any(|x| &x.id == current_problem_id)
     {
+        return HttpResponse::NotFound().json(Job {
+            code: 3,
+            reason: "ERR_NOT_FOUND".to_string(),
+            message: "HTTP 404 Not Found".to_string(),
+        });
+    }
+
+    // 检查用户 ID 是否存在
+    let lock = USER_LIST.lock().unwrap();
+    if !lock.iter().any(|x| x.id.unwrap() == body.user_id) {
         return HttpResponse::NotFound().json(Job {
             code: 3,
             reason: "ERR_NOT_FOUND".to_string(),

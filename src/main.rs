@@ -14,6 +14,7 @@ mod config;
 
 use api::hello::{exit, greet};
 use api::jobs::{get_jobs, get_jobs_by_id, post_jobs, put_jobs_by_id, JobCounter, JobResponse};
+use api::users::{get_users, post_users, User};
 use args::Args;
 use args::Parser;
 use config::Config;
@@ -22,6 +23,10 @@ use config::Config;
 
 lazy_static! {
     static ref JOB_LIST: Arc<Mutex<Vec<JobResponse>>> = Arc::new(Mutex::new(Vec::new()));
+    static ref USER_LIST: Arc<Mutex<Vec<User>>> = Arc::new(Mutex::new(vec![User {
+        id: Some(0),
+        name: "root".to_string()
+    }]));
 }
 
 #[actix_web::main]
@@ -54,6 +59,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_jobs)
             .service(get_jobs_by_id)
             .service(put_jobs_by_id)
+            .service(get_users)
+            .service(post_users)
     })
     .bind(("127.0.0.1", 12345))?
     .run()
