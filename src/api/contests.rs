@@ -26,19 +26,29 @@ async fn get_ranklist(
     println!("2");
     // 比赛信息
     let contest_id = contestid.into_inner();
-    let clock = CONTEST_LIST.lock().unwrap();
-    let cindex = clock.iter().position(|x| x.id == Some(contest_id));
-    if cindex.is_none() {
-        return HttpResponse::NotFound().json(Job {
-            code: 3,
-            reason: "ERR_NOT_FOUND".to_string(),
-            message: "Contest {contest_id} not found.".to_string(),
-        });
+    let mut contest = Contest {
+        id: None,
+        name: String::new(),
+        from: String::new(),
+        to: String::new(),
+        problem_ids: Vec::new(),
+        user_ids: Vec::new(),
+        submission_limit: 100,
+    };
+    if contest_id != 0 {
+        let clock = CONTEST_LIST.lock().unwrap();
+        let cindex = clock.iter().position(|x| x.id == Some(contest_id));
+        if cindex.is_none() {
+            return HttpResponse::NotFound().json(Job {
+                code: 3,
+                reason: "ERR_NOT_FOUND".to_string(),
+                message: "Contest {contest_id} not found.".to_string(),
+            });
+        }
+        let cindex = cindex.unwrap();
+        contest = clock[cindex].clone();
+        drop(clock);
     }
-    let cindex = cindex.unwrap();
-    let contest = clock[cindex].clone();
-    drop(clock);
-
     println!("3");
     // 比赛 id 为 0 总是表示全局排行榜，即包括所有的用户和所有的题目（按题目 id 升序）
     // id不为0时，根据比赛计算
@@ -47,8 +57,6 @@ async fn get_ranklist(
     } else {
         contest.problem_ids.len()
     };
-
-    let closure = |x: usize| contest.problem_ids.iter().position(|a| a == &x).unwrap();
 
     println!("4");
 
@@ -105,7 +113,12 @@ async fn get_ranklist(
         let user = lock2[lock2.iter().position(|x| x.id == Some(user_id)).unwrap()].clone();
         drop(lock2);
         // warning: 假设题目号都是从0开始递增
-        let problem_id = closure(item.submission.problem_id as usize);
+        let problem_id = if contest_id == 0 {
+            item.submission.problem_id as usize
+        } else {
+            let closure = |x: usize| contest.problem_ids.iter().position(|a| a == &x).unwrap();
+            closure(item.submission.problem_id as usize)
+        };
         let score = item.score;
         // 更新ranklist里该用户对应题目的分数
         for rank in rank_list.iter_mut() {
