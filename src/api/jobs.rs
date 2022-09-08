@@ -8,7 +8,7 @@ use actix_web::{get, post, put, web, HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
-use crate::{JOB_LIST, USER_LIST};
+use crate::{CONTEST_LIST, JOB_LIST, USER_LIST};
 use chrono::Utc;
 use wait_timeout::ChildExt;
 
@@ -80,6 +80,60 @@ async fn post_jobs(
             message: "HTTP 404 Not Found".to_string(),
         });
     }
+    drop(lock);
+
+    // # 比赛功能
+    // 检查比赛 ID 是否存在
+    let lock = CONTEST_LIST.lock().unwrap();
+    let contest_index = lock
+        .iter()
+        .position(|x| x.id == Some(body.contest_id as usize));
+    if contest_index.is_none() {
+        return HttpResponse::NotFound().json(Job {
+            code: 3,
+            reason: "ERR_NOT_FOUND".to_string(),
+            message: "HTTP 404 Not Found".to_string(),
+        });
+    }
+
+    // 检查用户 ID 是否在此比赛中
+    let contest = lock[contest_index.unwrap()].clone();
+    if !contest.user_ids.contains(&(body.user_id as usize)) {
+        return HttpResponse::BadRequest().json(Job {
+            code: 1,
+            reason: "ERR_INVALID_ARGUMENT".to_string(),
+            message: "HTTP 400 Bad Request".to_string(),
+        });
+    }
+
+    // 检查题目ID是否在此比赛中
+    if !contest.problem_ids.contains(&(body.problem_id as usize)) {
+        return HttpResponse::BadRequest().json(Job {
+            code: 1,
+            reason: "ERR_INVALID_ARGUMENT".to_string(),
+            message: "HTTP 400 Bad Request".to_string(),
+        });
+    }
+    drop(lock);
+
+    // 用户该题目的提交次数限制是否达到上限
+    // 在joblist中检索所有userid,problemid，contest_id和当前一样的提交
+    let lock = JOB_LIST.lock().unwrap();
+    let v: Vec<&JobResponse> = lock
+        .iter()
+        .filter(|x| x.submission.user_id == body.user_id)
+        .filter(|x| x.submission.problem_id == body.problem_id)
+        .filter(|x| x.submission.contest_id == body.contest_id)
+        .collect();
+    if (v.len() as i32) >= contest.submission_limit {
+        return HttpResponse::BadRequest().json(Job {
+            code: 4,
+            reason: "ERR_RATE_LIMIT".to_string(),
+            message: "HTTP 400 Bad Request".to_string(),
+        });
+    }
+    drop(lock);
+
     // ^ 请求合法
 
     // # 实现阻塞评测（在评测结束时发送响应）

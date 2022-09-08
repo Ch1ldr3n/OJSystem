@@ -12,7 +12,7 @@ mod api;
 mod args;
 mod config;
 
-use api::contests::get_ranklist;
+use api::contests::{get_contests, get_contests_by_id, get_ranklist, post_contests, Contest};
 use api::hello::{exit, greet};
 use api::jobs::{get_jobs, get_jobs_by_id, post_jobs, put_jobs_by_id, JobCounter, JobResponse};
 use api::users::{get_users, post_users, User};
@@ -28,6 +28,7 @@ lazy_static! {
         id: Some(0),
         name: "root".to_string()
     }]));
+    static ref CONTEST_LIST: Arc<Mutex<Vec<Contest>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
 #[actix_web::main]
@@ -63,6 +64,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_users)
             .service(post_users)
             .service(get_ranklist)
+            .service(post_contests)
+            .service(get_contests)
+            .service(get_contests_by_id)
     })
     .bind(("127.0.0.1", 12345))?
     .run()

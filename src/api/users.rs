@@ -59,7 +59,7 @@ async fn post_users(_user: web::Json<User>) -> impl Responder {
 
 #[get("users")]
 async fn get_users() -> impl Responder {
-    let mut lock = USER_LIST.lock().unwrap();
+    let lock = USER_LIST.lock().unwrap();
 
     // to-do:  sort by user.id
     HttpResponse::Ok().json(&*lock)
