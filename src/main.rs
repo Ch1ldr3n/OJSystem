@@ -12,6 +12,7 @@ mod api;
 mod args;
 mod config;
 
+use api::contests::get_ranklist;
 use api::hello::{exit, greet};
 use api::jobs::{get_jobs, get_jobs_by_id, post_jobs, put_jobs_by_id, JobCounter, JobResponse};
 use api::users::{get_users, post_users, User};
@@ -61,6 +62,7 @@ async fn main() -> std::io::Result<()> {
             .service(put_jobs_by_id)
             .service(get_users)
             .service(post_users)
+            .service(get_ranklist)
     })
     .bind(("127.0.0.1", 12345))?
     .run()

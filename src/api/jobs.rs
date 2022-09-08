@@ -13,12 +13,12 @@ use chrono::Utc;
 use wait_timeout::ChildExt;
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
-struct PostJob {
-    source_code: String,
-    language: String,
-    user_id: u32,
-    contest_id: u32,
-    problem_id: u32,
+pub struct PostJob {
+    pub source_code: String,
+    pub language: String,
+    pub user_id: u32,
+    pub contest_id: u32,
+    pub problem_id: u32,
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
@@ -636,25 +636,25 @@ async fn put_jobs_by_id(jobid: web::Path<String>, config: web::Data<Config>) -> 
 
 #[derive(Serialize, Clone)]
 pub struct JobResponse {
-    id: i32,
-    created_time: String,
-    updated_time: String,
-    submission: PostJob,
-    state: State,
-    result: JudgeResult,
-    score: f64,
-    cases: Vec<Case>,
+    pub id: i32,
+    pub created_time: String,
+    pub updated_time: String,
+    pub submission: PostJob,
+    pub state: State,
+    pub result: JudgeResult,
+    pub score: f64,
+    pub cases: Vec<Case>,
 }
 
 #[derive(Debug, Serialize, Clone, Deserialize, PartialEq)]
-enum State {
+pub enum State {
     Queueing,
     Running,
     Finished,
     // Canceled,
 }
 #[derive(Serialize, PartialEq, Clone, Copy, Deserialize, Debug)]
-enum JudgeResult {
+pub enum JudgeResult {
     Waiting,
     Running,
     Accepted,
@@ -678,7 +678,7 @@ enum JudgeResult {
 }
 
 #[derive(Serialize, Clone)]
-struct Case {
+pub struct Case {
     id: i32,
     result: JudgeResult,
     time: u64,

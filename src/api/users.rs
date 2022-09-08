@@ -1,4 +1,4 @@
-use actix_web::{get, post, put, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::USER_LIST;
@@ -65,7 +65,7 @@ async fn get_users() -> impl Responder {
     HttpResponse::Ok().json(&*lock)
 }
 
-#[derive(Debug, Deserialize, Clone, Serialize)]
+#[derive(Debug, Deserialize, Clone, Serialize, PartialEq)]
 pub struct User {
     pub id: Option<u32>,
     pub name: String,
