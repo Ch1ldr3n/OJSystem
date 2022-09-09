@@ -260,10 +260,11 @@ async fn post_jobs(
     });
 
     // other cases
-    for problem_case in problem_cases.iter() {
+    for (i, problem_case) in problem_cases.iter().enumerate() {
+        let index = i + 1;
         test_case_id += 1;
 
-        if job_result == JudgeResult::Running {
+        if job_result != JudgeResult::CompilationError {
             // 指定in out文件
             let in_file = File::open(&problem_case.input_file).unwrap();
             let out_file = File::create(temp_dir.join("test.out")).unwrap();
@@ -350,7 +351,8 @@ async fn post_jobs(
             time,
             memory,
             info: info.clone(),
-        })
+        });
+        time = 0;
     }
     // ^ 所有数据点测评完毕
     state = State::Finished;

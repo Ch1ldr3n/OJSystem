@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -23,8 +23,10 @@ pub struct Problem {
     pub cases: Vec<Case>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Misc {}
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct Misc {
+    packing: Option<Vec<Vec<usize>>>,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Case {
